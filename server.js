@@ -17,6 +17,12 @@ mongoose.connect(db)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, "frontend")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend", "index.html"));
+});
+
 // Настройка CORS для всех маршрутов
 app.use(cors({
   origin: "https://pumplies.github.io/", // Укажите ваш домен
