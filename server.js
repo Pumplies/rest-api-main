@@ -1,77 +1,67 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const mongoose = require('mongoose')
-const router = require('./routes/card-router')
+const mongoose = require('mongoose');
+const router = require('./routes/card-router');
+require('dotenv').config();
 
-require('dotenv').config()
+const port = process.env.PORT || 4000;
 
-const port = process.env.PORT || 4000
+const db = 'mongodb+srv://Pumplies:Maximka20051120@cluster0.dfi8dij.mongodb.net/restapi?retryWrites=true&w=majority&appName=Cluster0';
 
-const db = 'mongodb+srv://Pumplies:Maximka20051120@cluster0.dfi8dij.mongodb.net/restapi?retryWrites=true&w=majority&appName=Cluster0'
+mongoose.connect(db)
+  .then(() => console.log('DB Connected'))
+  .catch((error) => console.error('DB Connection Error:', error));
 
-mongoose
-    .connect(db)
-    .then(() => console.log('DB Connect'))
-    .catch((error) => console.log(error));
-app.use(express.urlencoded({ extended: true })); // Добавлено для обработки данных формы
-app.use(express.json()); // Добавлено для обработки JSON-запросов
-
-
-    
-
-app.use(cors());
-//Отправлять данные в виде JSON
+// Подключение middleware для обработки данных формы и JSON
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-// Настройка CORS
+
+// Настройка CORS для всех маршрутов
 app.use(cors({
   origin: "http://127.0.0.1:5500", // Укажите ваш домен
-  methods: "GET,POST,PUT,DELETE",
-  allowedHeaders: "Content-Type,Authorization"
+  methods: ["GET", "POST", "PUT", "DELETE"], // Укажите разрешённые методы
+  allowedHeaders: ["Content-Type", "Authorization"], // Укажите разрешённые заголовки
 }));
 
-//GET запрос
-app.use(router)
-// app.get("/api/items", async (req, res) => {
-//   try {
-//     const cards = await Cards.find();
-//     res.json(cards);
-// } catch (error) {
-//     console.error(error);
-//     res.status(500).send('Error retrieving questions');
-// }
-// });
-//POST запрос
+// Подключение маршрутов
+app.use('/api', router);
+
+// POST запрос для создания элемента
 app.post("/api/items", (req, res) => {
   const { title, subtitle } = req.body;
-
-  const userCard = new Cards({ title, subtitle })
+  // Пример сохранения данных в MongoDB, предполагая, что у вас есть модель Cards
+  const userCard = new Cards({ title, subtitle });
   userCard.save()
-
+    .then(() => res.status(201).json({ message: 'Card created successfully' }))
+    .catch(error => res.status(500).json({ error }));
 });
 
-// DELETE ЗАПРОС
+// DELETE запрос для удаления элемента по ID
 app.delete("/api/items/:id", (req, res) => {
   const { id } = req.params;
   Cards.findByIdAndDelete(id)
-      .then(() => res.sendStatus(200))
-      .catch((error) => {
-          console.error(error);
-          res.sendStatus(404);
-      });
+    .then(() => res.sendStatus(200))
+    .catch(error => {
+      console.error(error);
+      res.sendStatus(404);
+    });
 });
 
-//PUT запрос
-app.put("/api/items/:index", (req, res) => {
-  // const index = req.params._id;
-  // if (Cards[index]) {
-  //   Cards[index].completed = true;
-  //   res.json(data[index]);
-  // } else {
-  //   res.status(404).json({ message: "Ошибка при изменении" });
-  // }
+// PUT запрос для обновления элемента по ID
+app.put("/api/items/:id", (req, res) => {
+  const { id } = req.params;
+  const { title, subtitle } = req.body;
+  Cards.findByIdAndUpdate(id, { title, subtitle }, { new: true })
+    .then(updatedCard => res.json(updatedCard))
+    .catch(error => {
+      console.error(error);
+      res.sendStatus(404);
+    });
 });
-//Запуск сервера
+
+// Запуск сервера
 app.listen(port, () => {
-  console.log(`Server hosting on 4000 PORT`);
+  console.log(`Server is running on port ${port}`);
 });
+
