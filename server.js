@@ -19,7 +19,7 @@ app.use(express.json());
 
 // Настройка CORS для всех маршрутов
 app.use(cors({
-  origin: "http://127.0.0.1:5500", // Укажите ваш домен
+  origin: "https://pumplies.github.io/", // Укажите ваш домен
   methods: ["GET", "POST", "PUT", "DELETE"], // Укажите разрешённые методы
   allowedHeaders: ["Content-Type", "Authorization"], // Укажите разрешённые заголовки
 }));
